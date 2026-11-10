@@ -1,6 +1,6 @@
-// Sakanly Production Ready Server
+// Sakanly Local Development & Standalone Server
 import http from 'http';
-import { createApp } from './app.js';
+import { createApp } from './expressApp.js';
 import { config } from './config/index.js';
 import { connectDB, disconnectDB } from './config/database.js';
 import { runMigrations } from './services/migrationService.js';
@@ -58,14 +58,9 @@ const startServer = async () => {
 
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
-
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  });
-
-  process.on('uncaughtException', (err) => {
-    console.error('❌ [Server] Uncaught Exception caught by top-level handler:', err.message);
-  });
 };
 
-startServer();
+startServer().catch((err) => {
+  console.error('❌ [Server] Fatal startup failure:', err);
+  process.exit(1);
+});

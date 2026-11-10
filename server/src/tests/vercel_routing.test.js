@@ -1,8 +1,14 @@
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import serverlessHandler, { extractNormalizedPathname, isPublicExemptedRoute } from '../../api/index.js';
-import appHandler, { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import { connectDB, disconnectDB, isMongoConnected } from '../config/database.js';
 import { config } from '../config/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let totalTests = 0;
 let passedTests = 0;
@@ -45,7 +51,7 @@ function requestHttp(serverUrl, urlPath, method = 'GET') {
 
 async function runVercelRoutingTests() {
   console.log('========================================================================');
-  console.log('🧪 SAKANLY VERCEL SERVERLESS & MONGODB INTEGRATION TEST SUITE');
+  console.log('🧪 SAKANLY VERCEL SERVERLESS & EXPRESS ARCHITECTURE AUDIT');
   console.log('========================================================================\n');
 
   // ---------------------------------------------------------------------------
@@ -63,9 +69,28 @@ async function runVercelRoutingTests() {
   assert(isPublicExemptedRoute('/api/v1/listings') === false, 'data route "/api/v1/listings" is NOT exempted');
 
   // ---------------------------------------------------------------------------
-  // 2. Serverless Handler HTTP Routing Tests (Healthy Environment)
+  // 2. Vercel Auto-Detection Heuristics Defense & File Architecture Checks
   // ---------------------------------------------------------------------------
-  console.log('\n--- 2. Testing server/api/index.js Serverless Function Handler ---');
+  console.log('\n--- 2. Testing File Architecture (Zero Vercel Collision Defense) ---');
+  const legacyAppPath = path.resolve(__dirname, '../app.js');
+  const legacyServerPath = path.resolve(__dirname, '../server.js');
+  const expressAppPath = path.resolve(__dirname, '../expressApp.js');
+  const localServerPath = path.resolve(__dirname, '../localServer.js');
+
+  assert(!fs.existsSync(legacyAppPath), 'server/src/app.js is permanently removed to prevent Vercel auto-detection');
+  assert(!fs.existsSync(legacyServerPath), 'server/src/server.js is permanently removed to prevent Vercel auto-detection');
+  assert(fs.existsSync(expressAppPath), 'server/src/expressApp.js exists as dedicated internal Express module');
+  assert(fs.existsSync(localServerPath), 'server/src/localServer.js exists as dedicated local development entry');
+
+  // Verify expressApp.js has named createApp and NO default export
+  const expressAppModule = await import('../expressApp.js');
+  assert(typeof expressAppModule.createApp === 'function', 'expressApp.js exports named createApp() factory function');
+  assert(expressAppModule.default === undefined, 'expressApp.js has NO default export (does not pretend to be a serverless function)');
+
+  // ---------------------------------------------------------------------------
+  // 3. Serverless Handler HTTP Routing Tests (Healthy Environment)
+  // ---------------------------------------------------------------------------
+  console.log('\n--- 3. Testing server/api/index.js as Sole Serverless Entrypoint ---');
   await connectDB();
 
   const serverlessServer = http.createServer((req, res) => serverlessHandler(req, res));
@@ -73,56 +98,34 @@ async function runVercelRoutingTests() {
   const serverlessUrl = `http://127.0.0.1:${serverlessServer.address().port}`;
 
   try {
-    // 2.1 Root endpoint /
+    // 3.1 Root endpoint /
     const rootRes = await requestHttp(serverlessUrl, '/');
     assert(rootRes.statusCode === 200, 'GET / returns HTTP 200 OK');
     assert(rootRes.body?.status === 'active', 'GET / returns status: active');
     assert(rootRes.body?.name === 'Sakanly | سكنلي API', 'GET / returns name: "Sakanly | سكنلي API"');
     assert(rootRes.body?.documentation === '/api/v1/health', 'GET / returns documentation: "/api/v1/health"');
 
-    // 2.2 Root endpoint with query string
+    // 3.2 Root endpoint with query string
     const rootQueryRes = await requestHttp(serverlessUrl, '/?ref=monitoring&timestamp=123');
     assert(rootQueryRes.statusCode === 200, 'GET /?ref=monitoring returns HTTP 200 OK');
 
-    // 2.3 /health with query string
+    // 3.3 /health with query string
     const healthRes = await requestHttp(serverlessUrl, '/health?check=1&foo=bar');
     assert(healthRes.statusCode === 200, 'GET /health?check=1 returns HTTP 200 OK directly (no 500 error)');
     assert(healthRes.body?.success === true, 'GET /health response has success: true');
     assert(healthRes.body?.data?.status === 'UP', 'GET /health response data.status is "UP"');
 
-    // 2.4 /api/v1/health with query string
+    // 3.4 /api/v1/health with query string
     const apiHealthRes = await requestHttp(serverlessUrl, '/api/v1/health?probe=active');
     assert(apiHealthRes.statusCode === 200, 'GET /api/v1/health?probe=active returns HTTP 200 OK');
     assert(apiHealthRes.body?.success === true, 'GET /api/v1/health response has success: true');
 
-    // 2.5 Data route
+    // 3.5 Data route
     const listingsRes = await requestHttp(serverlessUrl, '/api/v1/listings');
     assert(listingsRes.statusCode === 200, 'GET /api/v1/listings returns HTTP 200 OK');
     assert(Array.isArray(listingsRes.body?.data?.listings || listingsRes.body?.data), 'GET /api/v1/listings returns listings array');
   } finally {
     serverlessServer.close();
-  }
-
-  // ---------------------------------------------------------------------------
-  // 3. Testing Direct server/src/app.js Default Export Handler
-  // ---------------------------------------------------------------------------
-  console.log('\n--- 3. Testing server/src/app.js Direct Default Export Handler ---');
-  assert(typeof appHandler === 'function', 'server/src/app.js exports default async function handler');
-  assert(typeof createApp === 'function', 'server/src/app.js exports named createApp function');
-
-  const appServer = http.createServer((req, res) => appHandler(req, res));
-  await new Promise((resolve) => appServer.listen(0, '127.0.0.1', resolve));
-  const appUrl = `http://127.0.0.1:${appServer.address().port}`;
-
-  try {
-    const directRootRes = await requestHttp(appUrl, '/');
-    assert(directRootRes.statusCode === 200, 'Direct app.js handler handles GET / returning HTTP 200 OK');
-    assert(directRootRes.body?.status === 'active', 'Direct app.js handler returns status: active');
-
-    const directHealthRes = await requestHttp(appUrl, '/health?monitor=1');
-    assert(directHealthRes.statusCode === 200, 'Direct app.js handler handles GET /health?monitor=1 returning HTTP 200 OK');
-  } finally {
-    appServer.close();
   }
 
   // ---------------------------------------------------------------------------
@@ -221,7 +224,7 @@ async function runVercelRoutingTests() {
   await connectDB();
 
   console.log('\n========================================================================');
-  console.log(`📊 VERCEL SERVERLESS & MONGODB AUDIT: ${passedTests} / ${totalTests} Passed (${Math.round((passedTests / totalTests) * 100)}%)`);
+  console.log(`📊 VERCEL SERVERLESS & EXPRESS ARCHITECTURE AUDIT: ${passedTests} / ${totalTests} Passed (${Math.round((passedTests / totalTests) * 100)}%)`);
   console.log('========================================================================\n');
 
   // Explicit clean exit

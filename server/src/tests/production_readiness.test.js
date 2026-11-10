@@ -5,7 +5,7 @@
  */
 
 import http from 'http';
-import { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import { config } from '../config/index.js';
 
 let totalTests = 0;

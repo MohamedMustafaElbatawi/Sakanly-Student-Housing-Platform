@@ -97,8 +97,8 @@ Sakanly/
 │   │   ├── services/           # منطق التصفية والبحث
 │   │   ├── utils/              # مساعد الاستجابات ApiResponse
 │   │   ├── validators/         # التحقق من المدخلات
-│   │   ├── app.js              # تهيئة Express
-│   │   └── server.js           # تشغيل الخادم
+│   │   ├── expressApp.js       # مصنع تهيئة Express
+│   │   └── localServer.js      # تشغيل الخادم المحلي
 │   └── package.json
 │
 ├── scripts/

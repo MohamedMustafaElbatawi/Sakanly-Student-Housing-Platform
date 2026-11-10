@@ -6,7 +6,7 @@
  */
 
 import http from 'http';
-import { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import { config } from '../config/index.js';
 import { connectDB, isMongoConnected, disconnectDB } from '../config/database.js';
 import { runMigrations } from '../services/migrationService.js';

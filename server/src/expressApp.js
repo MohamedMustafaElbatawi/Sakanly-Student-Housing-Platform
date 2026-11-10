@@ -12,6 +12,10 @@ import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
 import { noSqlSanitizer } from './middleware/sanitizer.js';
 import { HealthController } from './controllers/healthController.js';
 
+/**
+ * Creates and configures the Express Application instance for Sakanly.
+ * Named export factory used by both local HTTP server and Vercel Serverless Function entrypoint.
+ */
 export const createApp = () => {
   const app = express();
 
@@ -78,66 +82,3 @@ export const createApp = () => {
 
   return app;
 };
-
-// Singleton Express app instance for serverless invocations
-let defaultApp = null;
-
-export const getApp = () => {
-  if (!defaultApp) {
-    defaultApp = createApp();
-  }
-  return defaultApp;
-};
-
-// Helper for safe 503 responses across both Express and raw Node.js ServerResponse
-const sendDatabaseUnavailable = (res) => {
-  const payload = JSON.stringify({
-    success: false,
-    code: 'DATABASE_UNAVAILABLE',
-    message: 'تعذر الاتصال بقاعدة البيانات حالياً. يرجى المحاولة بعد لحظات.',
-  });
-
-  if (typeof res.status === 'function') {
-    return res.status(503).json(JSON.parse(payload));
-  }
-
-  res.statusCode = 503;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  return res.end(payload);
-};
-
-/**
- * Default export handler for Vercel Serverless Functions
- * If Vercel invokes this module directly, this handler ensures DB connection is ready
- * and executes the Express app, preventing "Invalid export found in module" errors.
- */
-export default async function handler(req, res) {
-  let dbConnected = false;
-  try {
-    const { connectDB } = await import('./config/database.js');
-    dbConnected = await connectDB();
-  } catch (dbErr) {
-    console.error('❌ [Database] Connection error in app handler:', dbErr.message);
-    dbConnected = false;
-  }
-
-  const rawUrl = req.url || '/';
-  const pathname = rawUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
-  const apiHealthPath = `${config.apiPrefix || '/api/v1'}/health`;
-  const isPublicStatic = pathname === '/' || pathname === '/health' || pathname === apiHealthPath || pathname === '/api/v1/health';
-
-  const isProductionMode = Boolean(
-    config.isProduction ||
-    config.nodeEnv === 'production' ||
-    process.env.NODE_ENV === 'production' ||
-    process.env.VERCEL_ENV === 'production'
-  );
-
-  // If database connection failed and request is a data route in production, return HTTP 503
-  if (!dbConnected && !isPublicStatic && isProductionMode) {
-    return sendDatabaseUnavailable(res);
-  }
-
-  const app = getApp();
-  return app(req, res);
-}

@@ -1,4 +1,4 @@
-import { createApp } from '../src/app.js';
+import { createApp } from '../src/expressApp.js';
 import { connectDB } from '../src/config/database.js';
 import { config } from '../src/config/index.js';
 

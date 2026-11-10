@@ -1,6 +1,6 @@
 import { config } from '../config/index.js';
 import { connectDB, isMongoConnected, disconnectDB } from '../config/database.js';
-import { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import { userStore } from '../data/mockUsers.js';
 import { ListingsService } from '../services/listingsService.js';
 import { PlatformSettingsStore } from '../data/platformSettings.js';

@@ -1,5 +1,5 @@
 import http from 'http';
-import { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import {
   normalizeOrigin,
   parseConfiguredOrigins,

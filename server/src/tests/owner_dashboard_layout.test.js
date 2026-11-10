@@ -11,7 +11,7 @@
 
 import assert from 'assert';
 import http from 'http';
-import { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import { connectDB, isMongoConnected } from '../config/database.js';
 import { userStore } from '../data/mockUsers.js';
 import { ListingsService } from '../services/listingsService.js';

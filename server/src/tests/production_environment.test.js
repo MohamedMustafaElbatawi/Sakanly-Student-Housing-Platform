@@ -1,5 +1,5 @@
 import http from 'http';
-import { createApp } from '../app.js';
+import { createApp } from '../expressApp.js';
 import { resolveEnvironment, getValidatedJwtSecret, config } from '../config/index.js';
 import { isDevelopmentOrigin, parseConfiguredOrigins, isOriginAllowed } from '../config/cors.js';
 import { connectDB, isMongoConnected, disconnectDB } from '../config/database.js';
