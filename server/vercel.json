@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "framework": null,
   "rewrites": [
     {
       "source": "/(.*)",
@@ -7,4 +8,3 @@
     }
   ]
 }
-

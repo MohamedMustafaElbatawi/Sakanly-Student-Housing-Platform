@@ -9,86 +9,124 @@ if (!cached) {
   cached = global.mongooseCache = { conn: null, promise: null, listenersAttached: false };
 }
 
-let isConnected = false;
-
-export const connectDB = async () => {
+/**
+ * Connect to MongoDB Atlas (or configured URI) with serverless connection pooling
+ * and graceful fallback.
+ */
+export const connectDB = async (customUri = null, customOpts = {}) => {
   // 1. If connection is already open and ready, return immediately
-  if (mongoose.connection.readyState === 1) {
-    isConnected = true;
+  if (mongoose.connection && mongoose.connection.readyState === 1) {
+    cached.conn = mongoose;
     return true;
   }
 
-  // 2. If cached connection is already active, return true
-  if (cached.conn && mongoose.connection.readyState === 1) {
-    isConnected = true;
-    return true;
+  // 2. If disconnected, disconnecting, or in stale error state, clean up so fresh connection can be initiated
+  if (mongoose.connection && mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
+    cached.conn = null;
+    cached.promise = null;
+    if (mongoose.connection.readyState !== 0) {
+      try {
+        await mongoose.disconnect();
+      } catch {
+        // Safe ignore
+      }
+    }
   }
 
-  const uri = config.mongoUri || process.env.MONGODB_URI || process.env.MONGO_URI;
+  const uri = customUri || config.mongoUri || process.env.MONGODB_URI || process.env.MONGO_URI;
+
+  const isProd = Boolean(
+    config.isProduction ||
+    config.nodeEnv === 'production' ||
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production'
+  );
 
   if (!uri) {
-    if (config.isProduction) {
+    cached.conn = null;
+    cached.promise = null;
+    if (isProd) {
       const err = new Error('MONGODB_URI is required in production environment.');
       console.error('❌ [Database] MONGODB_URI is not set in production environment.');
       throw err;
     }
     console.log('⚠️ [Database] MONGODB_URI / MONGO_URI is not set in environment.');
     console.log('💡 [Database] Running in In-Memory fallback mode. To persist data to MongoDB Atlas, add MONGODB_URI to server/.env');
-    isConnected = false;
     return false;
   }
 
   // 3. Attach listeners only once
   if (!cached.listenersAttached) {
     mongoose.connection.on('connected', () => {
-      isConnected = true;
       console.log('✅ [Database] MongoDB Atlas connected successfully.');
     });
 
     mongoose.connection.on('error', (err) => {
-      isConnected = false;
+      cached.conn = null;
+      cached.promise = null;
       console.error('❌ [Database] MongoDB connection error:', err.message);
     });
 
     mongoose.connection.on('disconnected', () => {
-      isConnected = false;
+      cached.conn = null;
+      cached.promise = null;
       console.warn('⚠️ [Database] MongoDB disconnected.');
+    });
+
+    mongoose.connection.on('close', () => {
+      cached.conn = null;
+      cached.promise = null;
     });
 
     cached.listenersAttached = true;
   }
 
-  // 4. Create new connection promise if none is in progress
+  // 4. If connection is already in flight (concurrent requests), reuse the existing promise
   if (!cached.promise) {
     mongoose.set('bufferCommands', false);
 
+    const defaultTimeout = isProd ? 5000 : 15000;
     const opts = {
-      serverSelectionTimeoutMS: 5000,
-      autoIndex: !config.isProduction, // Disable auto-indexing in production to avoid cold-start overhead
+      serverSelectionTimeoutMS: customOpts.serverSelectionTimeoutMS || defaultTimeout,
+      autoIndex: !isProd, // Disable auto-indexing in production to avoid cold-start overhead
       maxPoolSize: 10,
       minPoolSize: 0,
       socketTimeoutMS: 45000,
+      ...customOpts,
     };
 
     cached.promise = mongoose.connect(uri, opts).then((mongooseInstance) => {
-      isConnected = true;
-      return mongooseInstance;
+      if (mongoose.connection.readyState === 1) {
+        cached.conn = mongooseInstance;
+        return mongooseInstance;
+      }
+      cached.conn = null;
+      cached.promise = null;
+      throw new Error('MongoDB readyState is not connected after connect resolved.');
     }).catch((err) => {
       cached.promise = null;
+      cached.conn = null;
       throw err;
     });
   }
 
   try {
-    cached.conn = await cached.promise;
-    isConnected = true;
-    return true;
+    await cached.promise;
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      cached.conn = mongoose;
+      return true;
+    }
+    cached.conn = null;
+    cached.promise = null;
+    if (isProd) {
+      throw new Error('MongoDB connection readyState is not 1 after resolution.');
+    }
+    return false;
   } catch (error) {
     cached.promise = null;
     cached.conn = null;
-    isConnected = false;
     console.error('❌ [Database] Failed to connect to MongoDB:', error.message);
-    if (config.isProduction) {
+    if (isProd) {
       throw error;
     }
     console.log('🛡️ [Database] Falling back to safe In-Memory mode so the server remains active in development.');
@@ -96,18 +134,24 @@ export const connectDB = async () => {
   }
 };
 
-export const isMongoConnected = () => isConnected || mongoose.connection.readyState === 1;
-
-export const disconnectDB = async () => {
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-    isConnected = false;
-    if (cached) {
-      cached.conn = null;
-      cached.promise = null;
-    }
-    console.log('🔌 [Database] MongoDB disconnected.');
-  }
+/**
+ * Returns true strictly if MongoDB connection readyState === 1 (connected).
+ * Never relies on stale booleans.
+ */
+export const isMongoConnected = () => {
+  return Boolean(mongoose.connection && mongoose.connection.readyState === 1);
 };
 
-
+/**
+ * Disconnect from MongoDB and reset cache
+ */
+export const disconnectDB = async () => {
+  if (mongoose.connection && mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+  if (cached) {
+    cached.conn = null;
+    cached.promise = null;
+  }
+  console.log('🔌 [Database] MongoDB disconnected.');
+};
