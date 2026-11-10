@@ -15,6 +15,9 @@
     "build": "npm run build --prefix client",
     "start:server": "npm start --prefix server"
   },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
     "concurrently": "^9.2.5",
     "puppeteer-core": "^25.16.0"
