@@ -1,0 +1,22 @@
+{
+  "name": "sakanly-monorepo",
+  "version": "1.0.0",
+  "description": "Sakanly | سكنلي - Student Housing Platform for Egypt",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install --prefix client && npm install --prefix server",
+    "dev": "node scripts/dev.js",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "build": "npm run build --prefix client",
+    "start:server": "npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5",
+    "puppeteer-core": "^25.16.0"
+  }
+}

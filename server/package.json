@@ -1,0 +1,40 @@
+{
+  "name": "sakanly-server",
+  "version": "1.0.0",
+  "description": "Express REST API backend for Sakanly student housing platform",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch --watch-path=.env --watch-path=src src/server.js",
+    "test": "node src/tests/cors.test.js && node src/tests/sms_otp.test.js && node src/tests/brevo_email_otp.test.js && node src/tests/phase1_database.test.js && node src/tests/phase2_cloudinary.test.js && node src/tests/owner_properties.test.js && node src/tests/property_upload.test.js && node src/tests/property_lifecycle.test.js && node src/tests/security.test.js && node src/tests/production_readiness.test.js && node src/tests/e2e_full_lifecycle.test.js && node src/tests/owner_dashboard_and_contact.test.js",
+    "test:brevo": "node src/tests/brevo_email_otp.test.js",
+    "test:sms": "node src/tests/sms_otp.test.js",
+    "test:phase1": "node src/tests/phase1_database.test.js",
+    "test:phase2": "node src/tests/phase2_cloudinary.test.js",
+    "test:properties": "node src/tests/owner_properties.test.js",
+    "test:upload": "node src/tests/property_upload.test.js",
+    "test:lifecycle": "node src/tests/property_lifecycle.test.js",
+    "test:security": "node src/tests/security.test.js",
+    "test:readiness": "node src/tests/production_readiness.test.js",
+    "test:e2e": "node src/tests/e2e_full_lifecycle.test.js",
+    "test:owner_contact": "node src/tests/owner_dashboard_and_contact.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.11.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.3",
+    "google-auth-library": "^11.3.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.4",
+    "morgan": "^1.10.0",
+    "multer": "^2.5.0",
+    "nodemailer": "^10.3.1",
+    "socket.io": "^4.8.4"
+  }
+}

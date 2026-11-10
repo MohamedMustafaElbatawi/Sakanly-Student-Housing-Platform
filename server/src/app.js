@@ -1,0 +1,81 @@
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import { config } from './config/index.js';
+import { getCorsOptions } from './config/cors.js';
+import apiRouter from './routes/index.js';
+import { notFoundHandler } from './middleware/notFound.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
+import { noSqlSanitizer } from './middleware/sanitizer.js';
+
+export const createApp = () => {
+  const app = express();
+
+  // Trust reverse proxy (needed for secure cookies, proto detection, and accurate client IP behind proxies)
+  app.set('trust proxy', 1);
+
+  // 1. Security Headers with Helmet
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+      contentSecurityPolicy: false,
+    })
+  );
+
+  // 2. Cookie Parser for Secure HttpOnly Tokens
+  app.use(cookieParser());
+
+  // 3. CORS Configuration with Strict Whitelist & Origin Normalization
+  app.use(cors(getCorsOptions()));
+
+  // 4. Request Body Parsers (with safe limits)
+  app.use(express.json({ limit: '2mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+  // 5. NoSQL / Mongo Query Operator Sanitization
+  app.use(noSqlSanitizer);
+
+  // 6. Global API Rate Limiter
+  app.use(config.apiPrefix, apiLimiter);
+
+  // 7. Strict Auth Rate Limiter on Authentication & Recovery Endpoints
+  app.use(`${config.apiPrefix}/auth/login`, authLimiter);
+  app.use(`${config.apiPrefix}/auth/register`, authLimiter);
+  app.use(`${config.apiPrefix}/auth/forgot-password`, authLimiter);
+  app.use(`${config.apiPrefix}/auth/reset-password`, authLimiter);
+
+  // 8. Logger in development
+  if (config.nodeEnv !== 'test') {
+    app.use(morgan('dev'));
+  }
+
+  // 9. Mount API v1 router
+  app.use(config.apiPrefix, apiRouter);
+
+  // Direct root health check redirecting to API health
+  app.get('/health', (req, res) => {
+    res.redirect(`${config.apiPrefix}/health`);
+  });
+
+  // Root welcome endpoint
+  app.get('/', (req, res) => {
+    res.json({
+      name: 'Sakanly | سكنلي API',
+      status: 'active',
+      documentation: `${config.apiPrefix}/health`,
+      version: '1.0.0',
+    });
+  });
+
+  // 404 Handler
+  app.use(notFoundHandler);
+
+  // Centralized Error Handler
+  app.use(errorHandler);
+
+  return app;
+};

@@ -1,0 +1,55 @@
+{
+  "pagesVisited": 15,
+  "buttonsClicked": 12,
+  "formsSubmitted": 3,
+  "linksTested": 6,
+  "screenshotsTaken": 14,
+  "jsErrors": [
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "networkFailures": [],
+  "viewportResults": {
+    "desktop": {
+      "tested": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    "tablet": {
+      "tested": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    "mobile": {
+      "tested": 1,
+      "pass": 1,
+      "fail": 0
+    }
+  },
+  "sectionResults": {
+    "Student Experience": {
+      "status": "PASS",
+      "notes": "Student login, browsing, beds view, favorite toggle, viewing request modal, and direct favorites route all functional."
+    },
+    "Owner Experience": {
+      "status": "PASS",
+      "notes": "Owner login, dashboard stats, properties list, 5-step wizard navigation, and identity verification screens validated."
+    },
+    "Super Admin": {
+      "status": "PASS",
+      "notes": "Guard protection, super admin login, overview KPIs, listing moderation, owner verification, and security logs verified."
+    },
+    "Error Handling & 404": {
+      "status": "PASS",
+      "notes": "Unknown route handled cleanly by custom 404 boundary with home return button."
+    }
+  }
+}

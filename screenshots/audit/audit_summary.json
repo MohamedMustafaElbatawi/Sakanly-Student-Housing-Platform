@@ -1,0 +1,153 @@
+{
+  "totalTests": 80,
+  "passed": 80,
+  "failed": 0,
+  "viewportReports": [
+    {
+      "viewport": "Mobile Small (320px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Mobile (360px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Mobile (375px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Mobile (390px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Mobile Large (430px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Tablet (768px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Tablet Landscape (1024px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Laptop (1280px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Desktop (1440px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    },
+    {
+      "viewport": "Large Desktop (1920px)",
+      "pagesTested": 8,
+      "overflowErrors": 0,
+      "brokenImages": 0
+    }
+  ],
+  "consoleErrors": [
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID.",
+    "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+  ],
+  "networkFailures": [
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://res.cloudinary.com/xdyc2vjs/image/upload/f_auto,q_auto,w_640,h_400,c_fill/v1793709567/sakanly/properties/wozlev23a8jd4oty2c4w.png",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://res.cloudinary.com/xdyc2vjs/image/upload/f_auto,q_auto,w_640,h_400,c_fill/v1793709605/sakanly/properties/nfpekjfly986y8tyxc3m.png",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1502005229762-ee1b2b8ab00f?auto=format&fit=crop&w=1200&q=80",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://res.cloudinary.com/xdyc2vjs/image/upload/f_auto,q_auto,w_640,h_400,c_fill/v1793709605/sakanly/properties/nfpekjfly986y8tyxc3m.png",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://res.cloudinary.com/xdyc2vjs/image/upload/f_auto,q_auto,w_640,h_400,c_fill/v1793709567/sakanly/properties/wozlev23a8jd4oty2c4w.png",
+      "error": "net::ERR_BLOCKED_BY_ORB"
+    }
+  ]
+}

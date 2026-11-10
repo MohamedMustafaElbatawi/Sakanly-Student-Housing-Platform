@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded Brand Petrol Container -->
+  <rect width="64" height="64" rx="16" fill="#0B3D3A" />
+  
+  <!-- Outer House Geometry in Amber Gold -->
+  <path d="M32 10L14 26V52H50V26L32 10Z" stroke="#F59E0B" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Chimney Detail -->
+  <path d="M19 16V22" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" />
+  
+  <!-- Inner House Geometry in Mint Teal -->
+  <path d="M32 20L21 30V48H43V30L32 20Z" stroke="#10B981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Architectural Key Center in Amber Gold -->
+  <rect x="28" y="32" width="8" height="8" rx="2" fill="#F59E0B" />
+  <path d="M32 40V48M32 44H36" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

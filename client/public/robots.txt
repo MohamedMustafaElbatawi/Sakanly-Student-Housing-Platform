@@ -1,0 +1,23 @@
+# Sakanly Robots.txt
+User-agent: *
+Allow: /
+Allow: /browse
+Allow: /beds
+Allow: /how-it-works
+Allow: /property/*
+
+# Disallow private dashboards, authentication & administrative routes
+Disallow: /control-center/
+Disallow: /owner-dashboard/
+Disallow: /owner/
+Disallow: /messages/
+Disallow: /login
+Disallow: /register
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /verify-reset-otp
+Disallow: /reset-password
+Disallow: /api/
+
+Sitemap: https://sakanly.com/sitemap.xml
+
