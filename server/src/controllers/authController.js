@@ -16,14 +16,25 @@ import { normalizeEgyptianPhone, toInternationalFormat } from '../services/smsSe
 const googleClient = config.googleClientId ? new OAuth2Client(config.googleClientId) : null;
 
 // Secure HttpOnly Cookie configuration helper for Refresh Tokens
+const getRefreshTokenCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+  };
+};
+
 const setRefreshTokenCookie = (res, token) => {
   res.cookie('refreshToken', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    ...getRefreshTokenCookieOptions(),
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/',
   });
+};
+
+const clearRefreshTokenCookie = (res) => {
+  res.clearCookie('refreshToken', getRefreshTokenCookieOptions());
 };
 
 // Email validation helper
@@ -1031,7 +1042,7 @@ export const refreshSession = async (req, res, next) => {
 
     const decoded = verifyRefreshToken(rawRefreshToken);
     if (!decoded || !decoded.id) {
-      res.clearCookie('refreshToken', { path: '/' });
+      clearRefreshTokenCookie(res);
       return res.status(401).json({
         success: false,
         code: 'INVALID_REFRESH_TOKEN',
@@ -1041,7 +1052,7 @@ export const refreshSession = async (req, res, next) => {
 
     const user = userStore.findById(decoded.id);
     if (!user || user.suspended) {
-      res.clearCookie('refreshToken', { path: '/' });
+      clearRefreshTokenCookie(res);
       return res.status(401).json({
         success: false,
         code: 'USER_NOT_FOUND_OR_SUSPENDED',
@@ -1055,7 +1066,7 @@ export const refreshSession = async (req, res, next) => {
     if (!storedToken || storedToken.isRevoked) {
       // Invalidate the entire token family
       userStore.revokeTokenFamily(user.id, decoded.family);
-      res.clearCookie('refreshToken', { path: '/' });
+      clearRefreshTokenCookie(res);
 
       PlatformSettingsStore.logSecurityEvent({
         type: 'refresh_token_reuse_detected',
@@ -1126,12 +1137,7 @@ export const logout = async (req, res, next) => {
       userStore.revokeAllUserTokens(req.user.id);
     }
 
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
+    clearRefreshTokenCookie(res);
 
     return res.status(200).json({
       success: true,

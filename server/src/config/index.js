@@ -19,6 +19,7 @@ for (const p of candidateEnvPaths) {
 export const config = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
+  isProduction: (process.env.NODE_ENV || 'development') === 'production',
   apiPrefix: process.env.API_PREFIX || '/api/v1',
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   jwtSecret: process.env.JWT_SECRET || 'sakanly_secret_key_change_in_production_2026',
