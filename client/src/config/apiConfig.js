@@ -6,11 +6,18 @@ const resolveApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.trim()) {
     const clean = envUrl.trim().replace(/\/+$/, '');
-    // If it's a relative path like '/api/v1', return directly
+    // If it's a relative path like '/api/v1' or '/api':
     if (clean.startsWith('/')) {
+      if (clean === '/api') return '/api/v1';
       return clean;
     }
-    // If it's a full URL:
+    // If it's a full URL (e.g. https://sakanly-backend.vercel.app):
+    if (!clean.endsWith('/api/v1')) {
+      if (clean.endsWith('/api')) {
+        return `${clean}/v1`;
+      }
+      return `${clean}/api/v1`;
+    }
     return clean;
   }
 
@@ -28,7 +35,7 @@ const resolveSocketUrl = () => {
 
   const envApi = import.meta.env.VITE_API_BASE_URL;
   if (envApi && typeof envApi === 'string' && envApi.includes('://')) {
-    return envApi.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '');
+    return envApi.replace(/\/api(\/v1)?\/?$/, '').replace(/\/+$/, '');
   }
 
   // Fallback to current browser window origin for socket.io client
