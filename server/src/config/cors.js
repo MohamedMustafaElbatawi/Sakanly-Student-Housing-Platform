@@ -64,7 +64,7 @@ export const DEV_DEFAULT_ORIGINS = [
  * Strictly disabled in production.
  */
 export const isDevelopmentOrigin = (origin) => {
-  if (process.env.NODE_ENV === 'production') return false;
+  if (config?.isProduction || process.env.NODE_ENV === 'production') return false;
 
   const normalized = normalizeOrigin(origin);
   if (!normalized) return false;
@@ -102,7 +102,7 @@ export const isDevelopmentOrigin = (origin) => {
  * Build the full list of allowed origins.
  */
 export const getAllowedOrigins = () => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = config?.isProduction || process.env.NODE_ENV === 'production';
 
   const configured = parseConfiguredOrigins(
     process.env.ALLOWED_ORIGINS,
@@ -134,7 +134,8 @@ export const isOriginAllowed = (origin) => {
   }
 
   // Check dynamic development origin if not in production
-  if (process.env.NODE_ENV !== 'production' && isDevelopmentOrigin(normalized)) {
+  const isProd = config?.isProduction || process.env.NODE_ENV === 'production';
+  if (!isProd && isDevelopmentOrigin(normalized)) {
     return true;
   }
 

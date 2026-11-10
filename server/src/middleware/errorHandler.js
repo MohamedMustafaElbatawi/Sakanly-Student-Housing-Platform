@@ -1,6 +1,9 @@
 import { ApiResponse } from '../utils/apiResponse.js';
+import { config } from '../config/index.js';
 
 export const errorHandler = (err, req, res, next) => {
+  const isProd = config?.isProduction || process.env.NODE_ENV === 'production';
+
   // Only log full stack in development
   if (process.env.NODE_ENV !== 'test') {
     console.error('[Error Handler]:', err.stack || err.message);
@@ -35,7 +38,7 @@ export const errorHandler = (err, req, res, next) => {
   }
 
   // 5. Hide internal 500 details in production
-  if (statusCode === 500 && process.env.NODE_ENV === 'production') {
+  if (statusCode === 500 && isProd) {
     message = 'حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً.';
   }
 
@@ -43,6 +46,7 @@ export const errorHandler = (err, req, res, next) => {
     res,
     message,
     statusCode,
-    process.env.NODE_ENV === 'development' ? { stack: err.stack } : null
+    !isProd && process.env.NODE_ENV === 'development' ? { stack: err.stack } : null
   );
 };
+

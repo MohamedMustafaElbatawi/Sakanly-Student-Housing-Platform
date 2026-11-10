@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch --watch-path=.env --watch-path=src src/server.js",
-    "test": "node src/tests/cors.test.js && node src/tests/sms_otp.test.js && node src/tests/brevo_email_otp.test.js && node src/tests/phase1_database.test.js && node src/tests/phase2_cloudinary.test.js && node src/tests/owner_properties.test.js && node src/tests/property_upload.test.js && node src/tests/property_lifecycle.test.js && node src/tests/security.test.js && node src/tests/production_readiness.test.js && node src/tests/e2e_full_lifecycle.test.js && node src/tests/owner_dashboard_and_contact.test.js && node src/tests/vercel_serverless.test.js",
+    "test": "node src/tests/cors.test.js && node src/tests/sms_otp.test.js && node src/tests/brevo_email_otp.test.js && node src/tests/phase1_database.test.js && node src/tests/phase2_cloudinary.test.js && node src/tests/owner_properties.test.js && node src/tests/property_upload.test.js && node src/tests/property_lifecycle.test.js && node src/tests/security.test.js && node src/tests/production_readiness.test.js && node src/tests/e2e_full_lifecycle.test.js && node src/tests/owner_dashboard_and_contact.test.js && node src/tests/vercel_serverless.test.js && node src/tests/production_environment.test.js",
+    "test:prod_env": "node src/tests/production_environment.test.js",
     "test:vercel": "node src/tests/vercel_serverless.test.js",
     "test:brevo": "node src/tests/brevo_email_otp.test.js",
     "test:sms": "node src/tests/sms_otp.test.js",
