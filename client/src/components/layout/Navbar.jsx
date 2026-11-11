@@ -89,27 +89,31 @@ export const Navbar = () => {
       setUnreadMessages(0);
       return;
     }
+    let isMounted = true;
     const fetchUnread = () => {
       const activeToken = token || localStorage.getItem('sakanly_token');
       messagesApi
         .getUnreadCount(activeToken)
         .then((count) => {
-          setUnreadMessages(count || 0);
+          if (isMounted) {
+            setUnreadMessages(count || 0);
+          }
         })
-        .catch(() => {});
+        .catch(() => { });
     };
     fetchUnread();
 
     const socket = getSocket(token);
     const handleUpdate = () => fetchUnread();
-    socket.on('new_message', handleUpdate);
-    socket.on('conversation_updated', handleUpdate);
-    socket.on('conversation_read', handleUpdate);
+    socket?.on('new_message', handleUpdate);
+    socket?.on('conversation_updated', handleUpdate);
+    socket?.on('conversation_read', handleUpdate);
 
     return () => {
-      socket.off('new_message', handleUpdate);
-      socket.off('conversation_updated', handleUpdate);
-      socket.off('conversation_read', handleUpdate);
+      isMounted = false;
+      socket?.off('new_message', handleUpdate);
+      socket?.off('conversation_updated', handleUpdate);
+      socket?.off('conversation_read', handleUpdate);
     };
   }, [isAuthenticated, token]);
 
@@ -220,7 +224,6 @@ export const Navbar = () => {
             <button
               type="button"
               aria-label="قائمة المفضلة"
-              title="قائمة المفضلة"
               onClick={() => {
                 if (!isAuthenticated) {
                   navigate('/login?redirect=/browse?favoritesOnly=true', {
@@ -237,9 +240,9 @@ export const Navbar = () => {
               className={`relative p-2 rounded-full transition-colors hidden sm:flex ${isTransparentHero || (isHome && scrolled)
                 ? 'text-white/80 hover:text-white hover:bg-white/10'
                 : 'text-slate-600 hover:text-sakanly-primary hover:bg-slate-100'
-                }`}
+              }`}
               title="المفضلة"
-            >
+              >
               <Heart className="w-5 h-5" />
               {favorites.length > 0 && isAuthenticated && (
                 <span className="absolute top-0 right-0 w-4 h-4 bg-[#F59E0B] text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -253,11 +256,10 @@ export const Navbar = () => {
               <Link
                 to="/messages"
                 aria-label="المحادثات والرسائل"
-                className={`relative p-2 rounded-full transition-colors hidden sm:flex ${
-                  isTransparentHero || (isHome && scrolled)
-                    ? 'text-white/80 hover:text-white hover:bg-white/10'
-                    : 'text-slate-600 hover:text-[#0F766E] hover:bg-slate-100'
-                }`}
+                className={`relative p-2 rounded-full transition-colors hidden sm:flex ${isTransparentHero || (isHome && scrolled)
+                  ? 'text-white/80 hover:text-white hover:bg-white/10'
+                  : 'text-slate-600 hover:text-[#0F766E] hover:bg-slate-100'
+                  }`}
                 title="المحادثات والرسائل"
               >
                 <MessageSquare className="w-5 h-5" />
@@ -284,8 +286,8 @@ export const Navbar = () => {
                   type="button"
                   onClick={handleOwnerAccess}
                   className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all shrink-0 ${isTransparentHero || (isHome && scrolled)
-                      ? 'text-white hover:bg-white/10 border border-white/20'
-                      : 'text-[#0F766E] hover:text-[#0B3D3A] hover:bg-teal-50 border border-teal-600/30'
+                    ? 'text-white hover:bg-white/10 border border-white/20'
+                    : 'text-[#0F766E] hover:text-[#0B3D3A] hover:bg-teal-50 border border-teal-600/30'
                     }`}
                   title="الوصول إلى لوحة تحكم المالك"
                 >
@@ -303,8 +305,8 @@ export const Navbar = () => {
                   aria-label="قائمة حساب المستخدم"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full border text-xs font-bold transition-all ${isTransparentHero || (isHome && scrolled)
-                      ? 'border-white/20 bg-white/10 text-white hover:bg-white/20'
-                      : 'border-teal-200 bg-teal-50 text-sakanly-primary hover:bg-teal-100/70'
+                    ? 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+                    : 'border-teal-200 bg-teal-50 text-sakanly-primary hover:bg-teal-100/70'
                     }`}
                   aria-expanded={userDropdownOpen}
                   aria-haspopup="true"
@@ -338,12 +340,11 @@ export const Navbar = () => {
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-xs truncate text-slate-900">{user.fullName}</div>
                         <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
-                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            user.role === 'super_admin'
-                              ? 'bg-emerald-950 text-emerald-300'
-                              : user.role === 'owner'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-teal-100 text-teal-800'
+                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${user.role === 'super_admin'
+                          ? 'bg-emerald-950 text-emerald-300'
+                          : user.role === 'owner'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-teal-100 text-teal-800'
                           }`}>
                           {user.role === 'super_admin' ? 'صاحب المنصة (Super Admin)' : user.role === 'owner' ? 'مالك عقار' : 'طالب جامعي'}
                         </span>
@@ -446,8 +447,8 @@ export const Navbar = () => {
               <Link
                 to="/login"
                 className={`text-sm font-semibold transition-colors hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-lg ${isTransparentHero || (isHome && scrolled)
-                    ? 'text-white/90 hover:text-white hover:bg-white/10'
-                    : 'text-sakanly-text hover:text-sakanly-primary'
+                  ? 'text-white/90 hover:text-white hover:bg-white/10'
+                  : 'text-sakanly-text hover:text-sakanly-primary'
                   }`}
               >
                 تسجيل الدخول
@@ -469,8 +470,8 @@ export const Navbar = () => {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`md:hidden p-2 rounded-lg transition-colors focus:outline-none ${isTransparentHero || (isHome && scrolled)
-                  ? 'text-white hover:bg-white/10'
-                  : 'text-slate-700 hover:bg-slate-100'
+                ? 'text-white hover:bg-white/10'
+                : 'text-slate-700 hover:bg-slate-100'
                 }`}
               aria-label="القائمة"
             >
