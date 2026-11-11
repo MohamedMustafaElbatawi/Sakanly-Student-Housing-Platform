@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Mail, 
@@ -21,6 +21,7 @@ import {
 import { useAuth } from '../context/AuthContext.jsx';
 import { useAdminAuth } from '../context/AdminAuthContext.jsx';
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton.jsx';
+import { consumeGoogleRedirectCallback } from '../utils/googleOAuth.js';
 import sakanlyLogo from '../assets/sakanly-logo.png';
 
 export const LoginPage = () => {
@@ -182,15 +183,16 @@ export const LoginPage = () => {
     }
   };
 
-  const handleGoogleSuccess = async (credential) => {
+  const handleGoogleSuccess = async (credential, nonce = null, overrideRedirectTarget = null) => {
     if (loading) return;
     setError('');
     setSuccessMessage('');
     setLoading(true);
 
     try {
-      const res = await loginWithGoogle(credential);
+      const res = await loginWithGoogle(credential, nonce);
       const verifiedRole = res.user?.role;
+      const effectiveRedirectTarget = overrideRedirectTarget || redirectTarget;
 
       // 1. Super Admin: Route to /control-center
       if (verifiedRole === 'super_admin') {
@@ -207,11 +209,11 @@ export const LoginPage = () => {
       setSuccessMessage(res.message || 'تم تسجيل الدخول بحساب Google بنجاح!');
 
       const targetPath = verifiedRole === 'owner'
-        ? (redirectTarget || '/owner-dashboard')
-        : (redirectTarget && !redirectTarget.includes('owner') ? redirectTarget : '/browse');
+        ? (effectiveRedirectTarget || '/owner-dashboard')
+        : (effectiveRedirectTarget && !effectiveRedirectTarget.includes('owner') ? effectiveRedirectTarget : '/browse');
 
       setTimeout(() => {
-        navigate(targetPath);
+        navigate(targetPath, { replace: true });
       }, 750);
     } catch (err) {
       setError(err.message || 'فشل تسجيل الدخول عبر Google.');
@@ -219,6 +221,29 @@ export const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  // Complete Google OAuth Redirect Flow callback (mobile browsers / fallback)
+  const handledGoogleRedirectRef = useRef(false);
+  useEffect(() => {
+    if (handledGoogleRedirectRef.current) return;
+    const callbackResult = consumeGoogleRedirectCallback();
+    if (!callbackResult) return;
+
+    handledGoogleRedirectRef.current = true;
+    if (callbackResult.error) {
+      setError(callbackResult.error);
+      return;
+    }
+
+    if (callbackResult.idToken) {
+      handleGoogleSuccess(
+        callbackResult.idToken,
+        callbackResult.nonce,
+        callbackResult.redirectTarget || null
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#F8FAFC] font-cairo overflow-x-hidden w-full max-w-full" dir="rtl">
@@ -506,6 +531,7 @@ export const LoginPage = () => {
           <div>
             <GoogleAuthButton
               text="المتابعة باستخدام Google"
+              redirectTarget={redirectTarget || ''}
               onSuccess={handleGoogleSuccess}
               onError={(msg) => setError(msg)}
               disabled={loading}

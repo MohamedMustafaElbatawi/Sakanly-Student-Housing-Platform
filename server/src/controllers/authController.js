@@ -332,7 +332,7 @@ export const login = async (req, res, next) => {
 
 export const googleAuth = async (req, res, next) => {
   try {
-    const { credential } = req.body;
+    const { credential, nonce } = req.body;
 
     if (!credential) {
       return res.status(400).json({
@@ -365,7 +365,8 @@ export const googleAuth = async (req, res, next) => {
       try {
         const parts = credential.split('.');
         if (parts.length === 3) {
-          const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const payloadJson = Buffer.from(base64, 'base64').toString('utf-8');
           googlePayload = JSON.parse(payloadJson);
         } else {
           const parsed = typeof credential === 'object' ? credential : JSON.parse(credential);
@@ -391,6 +392,14 @@ export const googleAuth = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'البريد الإلكتروني لحساب Google غير موثق. يرجى توثيق بريدك أولاً.',
+      });
+    }
+
+    // Verify OIDC nonce when using Redirect Flow to prevent token replay
+    if (nonce && googlePayload.nonce !== nonce) {
+      return res.status(401).json({
+        success: false,
+        message: 'فشل التحقق من جلسة Google OAuth (nonce غير متطابق). يرجى المحاولة مرة أخرى.',
       });
     }
 

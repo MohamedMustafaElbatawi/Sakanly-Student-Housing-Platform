@@ -1,24 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import { isMobileDevice, startGoogleRedirectLogin } from '../../utils/googleOAuth.js';
 
 export const GoogleAuthButton = ({
   onSuccess,
   onError,
   disabled = false,
   text = 'المتابعة باستخدام Google',
+  redirectTarget = '',
 }) => {
   const [loading, setLoading] = useState(false);
   const [gsiRendered, setGsiRendered] = useState(false);
+  const wrapperRef = useRef(null);
   const googleBtnContainerRef = useRef(null);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const useRedirectFlow = isMobileDevice();
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  }, [onSuccess, onError]);
 
   const handleGoogleCredentialResponse = async (response) => {
     if (response?.credential) {
       setLoading(true);
       try {
-        await onSuccess(response.credential);
+        await onSuccessRef.current(response.credential);
       } catch (err) {
-        if (onError) onError(err.message || 'فشل إتمام تسجيل الدخول عبر Google');
+        if (onErrorRef.current) {
+          onErrorRef.current(err.message || 'فشل إتمام تسجيل الدخول عبر Google');
+        }
       } finally {
         setLoading(false);
       }
@@ -26,24 +39,32 @@ export const GoogleAuthButton = ({
   };
 
   useEffect(() => {
-    if (!googleClientId) return;
+    // On mobile browsers / WebViews, skip GIS popup iframe and use direct full-page Redirect Flow
+    if (!googleClientId || useRedirectFlow) return;
 
     let checkInterval = null;
+    let isCancelled = false;
 
     const initializeGsi = () => {
+      if (isCancelled) return;
       if (window.google?.accounts?.id && googleBtnContainerRef.current) {
         try {
           window.google.accounts.id.initialize({
             client_id: googleClientId,
+            ux_mode: 'popup',
             callback: handleGoogleCredentialResponse,
             auto_select: false,
             cancel_on_tap_outside: true,
           });
 
-          // Render official Google Identity Services button into container with responsive width
-          const containerW = googleBtnContainerRef.current?.offsetWidth || 280;
+          // Render official Google Identity Services button using visible wrapper width
+          const containerW =
+            wrapperRef.current?.offsetWidth ||
+            googleBtnContainerRef.current?.offsetWidth ||
+            280;
           const computedWidth = Math.max(220, Math.min(containerW, 360));
 
+          googleBtnContainerRef.current.innerHTML = '';
           window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
             type: 'standard',
             theme: 'outline',
@@ -64,45 +85,72 @@ export const GoogleAuthButton = ({
       }
     };
 
+    const gsiScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+
     if (window.google?.accounts?.id) {
       initializeGsi();
     } else {
+      if (gsiScript) {
+        gsiScript.addEventListener('load', initializeGsi);
+      }
       let attempts = 0;
       checkInterval = setInterval(() => {
         attempts++;
         if (window.google?.accounts?.id) {
           initializeGsi();
-        } else if (attempts > 15) {
+        } else if (attempts > 50) {
           clearInterval(checkInterval);
         }
       }, 200);
     }
 
     return () => {
+      isCancelled = true;
       if (checkInterval) clearInterval(checkInterval);
+      if (gsiScript) {
+        gsiScript.removeEventListener('load', initializeGsi);
+      }
     };
-  }, [googleClientId]);
+  }, [googleClientId, useRedirectFlow]);
 
-  // Click handler for custom button when real client ID is not configured (demo/preview mode)
+  // Click handler for Mobile Redirect Flow, Desktop fallback, and Dev Demo Mode
   const handleClick = async () => {
     if (disabled || loading) return;
 
-    // If real Google Client ID is configured and prompt is supported
+    // 1. Mobile (or when GIS script is unavailable while Client ID is configured):
+    // Trigger full-page OAuth redirect synchronously from user interaction
+    if (googleClientId && (useRedirectFlow || !window.google?.accounts?.id)) {
+      setLoading(true);
+      startGoogleRedirectLogin({
+        clientId: googleClientId,
+        redirectTarget,
+      });
+      return;
+    }
+
+    // 2. Desktop fallback when GIS is loaded but official iframe isn't rendered
     if (googleClientId && window.google?.accounts?.id) {
       setLoading(true);
       try {
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            setLoading(false);
+            // Fall back cleanly to redirect instead of silently doing nothing
+            startGoogleRedirectLogin({
+              clientId: googleClientId,
+              redirectTarget,
+            });
           }
         });
       } catch {
-        setLoading(false);
+        startGoogleRedirectLogin({
+          clientId: googleClientId,
+          redirectTarget,
+        });
       }
       return;
     }
 
-    // Development / Demo Mode when VITE_GOOGLE_CLIENT_ID is not configured
+    // 3. Development / Demo Mode when VITE_GOOGLE_CLIENT_ID is not configured
     setLoading(true);
     try {
       const demoStudentEmail = 'student.google@university.edu.eg';
@@ -122,27 +170,31 @@ export const GoogleAuthButton = ({
       const b64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(demoGooglePayload))));
       const simulatedGoogleCredential = `eyJhbGciOiJSUzI1NiIsImtpZCI6ImRlbW8ifQ.${b64Payload}.simulated_signature_for_dev`;
 
-      await onSuccess(simulatedGoogleCredential);
+      await onSuccessRef.current(simulatedGoogleCredential);
     } catch (err) {
-      if (onError) onError(err.message || 'حدث خطأ أثناء الاتصال بحساب Google');
+      if (onErrorRef.current) {
+        onErrorRef.current(err.message || 'حدث خطأ أثناء الاتصال بحساب Google');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full">
-      {/* If Google Client ID is set, render the official GSI container */}
-      {googleClientId && (
+    <div ref={wrapperRef} className="w-full relative">
+      {/* On Desktop with Client ID configured, render the official GIS popup button */}
+      {googleClientId && !useRedirectFlow && (
         <div
           ref={googleBtnContainerRef}
-          className={`w-full flex justify-center items-center ${gsiRendered ? 'block' : 'hidden'} min-h-[44px]`}
+          className={`w-full flex justify-center items-center min-h-[44px] ${
+            gsiRendered ? 'opacity-100 relative' : 'opacity-0 pointer-events-none absolute inset-x-0 top-0'
+          }`}
           style={{ width: '100%' }}
         />
       )}
 
-      {/* Show custom styled button if GIS is not rendered or if googleClientId is not set */}
-      {(!googleClientId || !gsiRendered) && (
+      {/* Render custom styled Google button on Mobile (Redirect Flow), while GIS loads, or in Demo Mode */}
+      {(useRedirectFlow || !googleClientId || !gsiRendered) && (
         <button
           type="button"
           onClick={handleClick}

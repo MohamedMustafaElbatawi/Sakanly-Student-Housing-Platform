@@ -343,11 +343,14 @@ export const authApi = {
     return result;
   },
 
-  async googleAuth(credential) {
+  async googleAuth(credential, nonce) {
     const res = await fetch(`${API_BASE_URL}/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential }),
+      body: JSON.stringify({
+        credential,
+        ...(nonce ? { nonce } : {}),
+      }),
     });
     const result = await res.json();
     if (!res.ok) {

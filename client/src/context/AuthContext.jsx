@@ -85,10 +85,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = async (credential) => {
+  const loginWithGoogle = async (credential, nonce) => {
     setIsLoading(true);
     try {
-      const response = await authApi.googleAuth(credential);
+      const response = await authApi.googleAuth(credential, nonce);
       if (response.success && response.data) {
         const receivedToken = response.data.token;
         const receivedUser = response.data.user;
